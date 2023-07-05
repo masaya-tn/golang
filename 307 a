@@ -1,0 +1,38 @@
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+func main() {
+	S := "14159 26535 89793 23846 26433 83279 50288 41971 69399 37510 58209 74944 59230 78164 6286 20899 86280 34825 34211 70679 82148"
+	
+	values := strings.Split(S, " ")
+	var numbers []int
+	for _, value := range values {
+	    num, err := strconv.Atoi(value)
+	    if err != nil {
+	        fmt.Println("エラー")
+	    }
+	    numbers = append(numbers, num)
+	}
+	
+	ans := 0
+	var answers []int
+	cnt := 0
+	for _, num := range numbers {
+	    ans += num
+	    cnt += 1
+	    if cnt == 7 {
+	        answers = append(answers, ans)
+	        ans = 0
+	        cnt = 0
+	    }
+	}
+	for _, value := range answers {
+	    fmt.Println(value)
+	}
+}
+
