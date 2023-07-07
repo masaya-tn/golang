@@ -1,0 +1,44 @@
+package main
+
+import "fmt"
+
+type Engine struct {
+    horsepower int
+}
+
+func (e *Engine) Start() {
+    fmt.Println("Engine started")
+}
+
+type Car struct {
+    Engine
+    brand string
+    color string
+    fuelAmount int
+}
+
+func (c *Car) move() {
+    if c.fuelAmount < 10 {
+        fmt.Println("燃料が足りません")
+        return
+    }
+    c.fuelAmount -= 10
+    fmt.Println("残りの燃料は", c.fuelAmount, "です")
+}
+
+func main() {
+    c := Car{
+        Engine: Engine{
+            horsepower: 200,
+        },
+        brand: "Toyota",
+        color: "red",
+        fuelAmount: 30,
+    }
+
+    c.Start() // "Engine started"
+    c.move()
+    c.move()
+    c.move()
+    c.move()
+}
