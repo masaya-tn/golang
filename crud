@@ -1,0 +1,122 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "your_username"
+	password = "your_password"
+	dbname   = "your_database"
+)
+
+type ToDo struct {
+	ID     int
+	Title  string
+	Status string
+}
+
+func main() {
+	// PostgreSQLへの接続文字列の作成
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	// PostgreSQLへの接続を確立
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// 接続の確認
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Successfully connected to PostgreSQL!")
+
+	// ToDoアイテムの作成
+	createToDoItem(db, "Buy groceries")
+
+	// ToDoアイテムの取得
+	todos := getToDoItems(db)
+	fmt.Println("ToDo items:")
+	for _, todo := range todos {
+		fmt.Printf("ID: %d, Title: %s, Status: %s\n", todo.ID, todo.Title, todo.Status)
+	}
+
+	// ToDoアイテムの更新
+	updateToDoItem(db, 1, "Buy milk", "completed")
+
+	// 更新後のToDoアイテムの取得
+	updatedTodos := getToDoItems(db)
+	fmt.Println("Updated ToDo items:")
+	for _, todo := range updatedTodos {
+		fmt.Printf("ID: %d, Title: %s, Status: %s\n", todo.ID, todo.Title, todo.Status)
+	}
+
+	// ToDoアイテムの削除
+	deleteToDoItem(db, 1)
+
+	// 削除後のToDoアイテムの取得
+	remainingTodos := getToDoItems(db)
+	fmt.Println("Remaining ToDo items:")
+	for _, todo := range remainingTodos {
+		fmt.Printf("ID: %d, Title: %s, Status: %s\n", todo.ID, todo.Title, todo.Status)
+	}
+}
+
+func createToDoItem(db *sql.DB, title string) {
+	insertStatement := `INSERT INTO todos (title, status) VALUES ($1, $2)`
+	_, err := db.Exec(insertStatement, title, "pending")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("New ToDo item created!")
+}
+
+func getToDoItems(db *sql.DB) []ToDo {
+	query := `SELECT * FROM todos`
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var todos []ToDo
+	for rows.Next() {
+		var todo ToDo
+		err := rows.Scan(&todo.ID, &todo.Title, &todo.Status)
+		if err != nil {
+			log.Fatal(err)
+		}
+		todos = append(todos, todo)
+	}
+
+	return todos
+}
+
+func updateToDoItem(db *sql.DB, id int, title string, status string) {
+	updateStatement := `UPDATE todos SET title = $1, status = $2 WHERE id = $3`
+	_, err := db.Exec(updateStatement, title, status, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ToDo item updated!")
+}
+
+func deleteToDoItem(db *sql.DB, id int) {
+	deleteStatement := `DELETE FROM todos WHERE id = $1`
+	_, err := db.Exec(deleteStatement, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("ToDo item deleted!")
+}
